@@ -5,7 +5,7 @@ from tkinter import messagebox
 # The questions and answers for each category
 questions_answers = {
     'Car Brands': [
-        ("Which car brand is known for its luxury vehicles such as the Phantom and the Ghost?", "Rolls-Royce"),
+        ("Which car brand is known for its luxury vehicles such as the Phantom and the Ghost?", "Rolls Royce"),#change rolls-royce to rolls royce
         ("What car brand's logo features a blue oval with the company name written in white?", "Ford"),
         ("Which Italian car manufacturer produces the 488 and the Portofino models?", "Ferrari")
     ],
@@ -34,11 +34,11 @@ def show_hint():
 # This is the function to validate the user's answer
 def check_answer():
     user_answer = entry.get().strip()
-    if user_answer.lower() == correct_answer[1].lower():
+    if user_answer.lower() == correct_answer.lower():#compared user answer to full answer because you were only comparing to a single letter
         messagebox.showinfo("Correct!", "Your answer is correct!")
     else:
-        messagebox.showerror("Incorrect!", f"Sorry, the correct answer is: {correct_answer[1]}")
-    next_question()
+        messagebox.showerror("Incorrect!", f"Sorry, the correct answer is: {correct_answer}")#removed word indexing when displaying correct answer
+    next_question()#this works but i suggest moving it into the differnt conditions
 
 
 # This is the function to display the next question
