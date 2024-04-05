@@ -29,5 +29,7 @@ Run the script using Python:
 python trivia_game.py
 
 Contributors
+
 Flavia
+
 Kyle
