@@ -1,158 +1,143 @@
 import random
 import tkinter as tk
 from tkinter import messagebox
+import requests
 
-# The questions and answers for each category
-questions_answers = {
-    'Cars': [
-        ("Which car brand is known for its luxury vehicles such as the Phantom and the Ghost?", "Rolls Royce"),
-        ("What car brand's logo features a blue oval with the company name written in white?", "Ford"),
-        ("Which Italian car manufacturer produces the 488 and the Portofino models?", "Ferrari"),
-        ("What car model is often associated with James Bond?", "Aston Martin"),
-        ("What car manufacturer produces the Civic and Accord models?", "Honda"),
-        ("What is the name of the luxury division of Toyota?", "Lexus"),
-        ("Which car brand uses the slogan “The Ultimate Driving Machine”?", "BMW"),
-        ("What is the name of the supercar brand founded by Christian von Koenigsegg?", "Koenigsegg"),
-        ("What was the first mass produced car in the world?", "Ford Model T"),
-        ("What does SUV stand for in the automotive world?", "Sport Utility Vehicle"),
-        ("What is the most popular car color worldwide?", "White"),
-        ("What car brand is known for its “Zoom Zoom” marketing slogan?", "Mazda"),
-        ("Which car model is often associated with the term “muscle car”?", "Chevrolet Camaro"),
-        ("Which electric car company was founded by Elon Musk?", "Tesla"),    
-        ("What does MPG stand for when referring to a car's fuel efficiency?", "Miles Per Gallon"),
-        ("What car brand is known for its “Twin Turbo” technology?", "Nissan"),
-        ("Which automaker introduced the first mass produced hybrid SUV?", "Toyota"),
-        ("Which car manufacturer is known for its “Super Cruise” advanced driver-assistance system?", "Cadillac"),
-        ("What classic car brand is famous for its split-window Corvette model?", "Chevrolet"),
-        ("Which car brand features a logo with four interlocking rings?", "Audi"),
-        ("What automaker's logo resembles a silver arrow pointing upward?", "Mercedes-Benz"),
-        ("Which automaker is known for its winged emblem featuring a red and blue oval?", "Subaru"),
-        ("What car brand's logo is a stylized letter “K” inside a circle?", "Kia"),
-        ("What automaker uses a logo that combines the letters “V” and “W” in a blue and silver design?", "Volkswagen"),
-    ],
-    'Celebrities': [
-        ("Which actor played the lead role in the movie 'Forrest Gump'?", "Tom Hanks"),
-        ("Who is known as the 'Queen of Pop' and has hits like 'Like a Virgin' and 'Vogue'?", "Madonna"),
-        ("Which actor portrayed Tony Stark/Iron Man in the Marvel Cinematic Universe?", "Robert Downey Jr."),
-        ("What is Rihanna's real name?", "Robyn Fenty"),
-        ("Ariana Grande got her start on what kids TV show?", "Victorious"),
-        ("Which pop star is the godmother of both of Elton John's sons?", "Lady Gaga"),
-        ("Which artist made history in 2020 as the youngest winner of the Grammys four main categories?", "Billie Eilish"),
-        ("Who was the first winner of The Masked Singer?", "T-Pain"),
-        ("Who is the oldest Kardashian sister?", "Kourtney"),
-        ("Who sings the famous 'All I want for christmas is You?'", "Mariah Carey"),
-        ("Which tech entrepreneur named his son X Æ A-12?", "Elon Musk"),
-        ("Which artist is known for the moonwalk?", "Michael Jackson"),
-        ("Which celebrity stared in Degrassi: The Next Generation?", "Drake"),
-        ("Which two Oscar-winning actresses with the same first name co-starred in Cruella?", "Emma Stone and Emma Thompson"),
-        ("Who plays James Bond?", "Daniel Craig"),
-        ("Angela Bassett was nominated for an Academy Award for Best Actress for her portrayal of which legendary singer?", "Tina Turner"),
-        ("Who wrote the 2018 memoir 'Becoming'?", "Michelle Obama"),
-        ("Which actor voiced both Darth Vader and The Lion King's Mufasa?", "James Earl Jones"),
-        ("What are the names of Kim Kardashian and Kanye West's kids?", "North, Saint, Chicago and Psalm"),
-        ("Which actress was nominated for an Academy Award for Best Actress for potraying Tina Turner?", "Angela Bassett"),
-        ("Which blonde star and sex symbol was found dead in her L.A. home in 1962?", "Marilyn Monroe"),
-    ],
-    'Countries': [
-        ("What is the largest country in the world by land area?", "Russia"),
-        ("Which European country is known for its windmills, tulips, and bicycles?", "Netherlands"),
-        ("Which Asian country is famous for its ancient temples like Angkor Wat?", "Cambodia")
-    ],
-    'Inventors': [
-        ("Who is credited with inventing the telephone?", "Alexander Graham Bell"),
-        ("Which inventor is known for creating the light bulb?", "Thomas Edison"),
-        ("Who invented the World Wide Web?", "Tim Berners-Lee")
-    ]
-}
+class TriviaGame:
+    def __init__(self):
+        self.window = tk.Tk()
+        self.window.title("Trivia")
+        self.window.geometry("900x800")
+        self.window.configure(bg="#0096FF")
+        self.current_question = ""
+        self.correct_answer = ""
+        self.current_level = 1
+        self.questions = []
+        self.correct_answers = []
+        self.answered_questions = {level: [] for level in range(1, 6)}
 
-# Dictionary to store the current level for each category
-current_levels = {category: 1 for category in questions_answers.keys()}
+        self.create_widgets()
 
-# Dictionary to store the answered questions for each category and level
-answered_questions = {category: {level: [] for level in range(1, 6)} for category in questions_answers.keys()}
+    def create_widgets(self):
+        frame = tk.Frame(self.window, bg="#0096FF")
+        frame.pack(pady=20)
 
-# Function to check if the current level is completed
-def is_level_completed(category):
-    current_level = current_levels[category]
-    answered_count = len(answered_questions[category][current_level])
-    return answered_count >= 5
+        instruction_label = tk.Label(frame, text="Welcome to Trivia!", font=("Times New Roman", 35), bg="#00FF00")
+        instruction_label.grid(row=0, column=0, columnspan=2, pady=20)
 
-# This is the function to show a hint for the current question
-def show_hint():
-    hint = f"Hint: {correct_answer[0].upper()}"
-    messagebox.showinfo("Hint", hint)
+        category_label = tk.Label(frame, text="Choose categories:", font=("Times", 18), bg="#00FF00")
+        category_label.grid(row=1, column=0, padx=20)
 
-# This is the function to validate the user's answer
-def check_answer():
-    user_answer = entry.get().strip()
-    if user_answer.lower() == correct_answer.lower():
-        messagebox.showinfo("Correct!", "Your answer is correct!")
-        answered_questions[current_category][current_level].append(current_question)
-    else:
-        messagebox.showerror("Incorrect!", f"Sorry, the correct answer is: {correct_answer}")
-    next_question()
+        self.categories = [
+            {"id": 9, "name": "General Knowledge"},
+            {"id": 10, "name": "Books"},
+            {"id": 11, "name": "Film"},
+            {"id": 12, "name": "Music"},
+            {"id": 13, "name": "Musicals & Theatres"},
+            {"id": 14, "name": "Television"},
+            {"id": 15, "name": "Video Games"},
+            {"id": 16, "name": "Board Games"},
+            {"id": 17, "name": "Science & Nature"},
+            {"id": 18, "name": "Computers"},
+            {"id": 19, "name": "Mathematics"},
+            {"id": 20, "name": "Mythology"},
+            {"id": 21, "name": "Sports"},
+            {"id": 22, "name": "Geography"},
+            {"id": 23, "name": "History"},
+            {"id": 24, "name": "Politics"},
+            {"id": 25, "name": "Art"},
+            {"id": 26, "name": "Celebrities"},
+            {"id": 27, "name": "Animals"},
+            {"id": 28, "name": "Vehicles"},
+            {"id": 29, "name": "Comics"},
+            {"id": 30, "name": "Gadgets"},
+            {"id": 31, "name": "Japanese Anime & Manga"},
+            {"id": 32, "name": "Cartoon & Animations"}
+        ] 
+            
 
-# This is the function to display the next question
-def next_question():
-    global current_category, current_question, correct_answer, current_level
-    if is_level_completed(current_category):
-        messagebox.showinfo("Level Completed", "Congratulations! You have completed this level.")
-        current_levels[current_category] += 1
-        if is_level_completed(current_category):
-            messagebox.showinfo("Category Completed", "Congratulations! You have completed all levels in this category.")
-            return
-    current_level = current_levels[current_category]
-    question_index = (current_level - 1) * 5 + len(answered_questions[current_category][current_level])
-    current_question, correct_answer = questions_answers[current_category][question_index]
-    label.config(text=current_question)
-    entry.delete(0, tk.END)
+        self.selected_categories = tk.StringVar()
+        self.selected_categories.set("")
 
-# This is the function to start the game
-def start_game():
-    global current_category
-    current_category = category_var.get()
-    next_question()
-    
-# Creating a tkinter window
-window = tk.Tk()
-window.title("Trivia Game")
+        category_dropdown = tk.OptionMenu(frame, self.selected_categories, *[category["name"] for category in self.categories])
+        category_dropdown.config(font=("Bold italic", 14), width=20, bg="#00FF00")
+        category_dropdown.grid(row=1, column=1, padx=20)
 
-# Styling the window
-window.geometry("500x500")
-window.configure(bg="#f0f0f0")
+        start_button = tk.Button(frame, text="Start Game", command=self.start_game, font=("Bold italic", 14), bg="#00FF00")
+        start_button.grid(row=2, column=0, columnspan=2, pady=10)
 
-# Creating a frame for better organization
-frame = tk.Frame(window, bg="#f0f0f0")
-frame.pack(pady=20)
+        self.label = tk.Label(self.window, text="", font=("Bold italic", 15), bg="#FFFFFF", padx=10, pady=10, relief="groove", wraplength=50)
+        self.label.pack(pady=10, padx=20, fill="both", expand=True) 
 
-# Creating widgets
-instruction_label = tk.Label(frame, text="Welcome to Trivia!", font=("Times New Roman", 35), bg="#f0f0f0")
-instruction_label.grid(row=0, column=0, columnspan=2, pady=20)
+        self.entry = tk.Entry(self.window, font=("Helvetica", 30))
+        self.entry.pack(pady=10, padx=20, fill="x")
 
-category_label = tk.Label(frame, text="Choose a category:", font=("Times", 18), bg="#f0f0f0")
-category_label.grid(row=1, column=0, padx=20)
+        submit_button = tk.Button(self.window, text="Submit Answer", command=self.check_answer, font=("Helvetica", 14), bg="#00FF00")
+        submit_button.pack(pady=10, padx=20, fill="x")
 
-category_var = tk.StringVar()
-category_var.set('Categories')
-categories = list(questions_answers.keys())  # Get all categories
-category_dropdown = tk.OptionMenu(frame, category_var, *categories)
-category_dropdown.config(font=("Bold italic", 14))
-category_dropdown.grid(row=1, column=1, padx=10)
+        hint_button = tk.Button(self.window, text="Hint", command=self.show_hint, font=("Helvetica", 14), bg="#00FF00")
+        hint_button.pack(pady=10, padx=20, fill="x")
 
-start_button = tk.Button(frame, text="Start Game", command=start_game, font=("Bold italic", 14))
-start_button.grid(row=2, column=0, columnspan=2, pady=10)
+    def fetch_questions(self, category_id):
+        try:
+            API_URL = f"https://opentdb.com/api.php?amount=20"
+            response = requests.get(API_URL)
+            data = response.json()
+            if 'results' in data:
+                results = data["results"]
+                self.questions = [result["question"] for result in results]
+                self.correct_answers = [result["correct_answer"] for result in results]
+                if not self.questions:
+                    messagebox.showerror("Error", "No questions have been found for this category.")
+            else:
+                messagebox.showerror("Error", "No results has been found in the API response.")
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error", f"Failed to fetch questions: {e}")
 
-label = tk.Label(window, text="", font=("Bold italic", 14), bg="#ffffff", padx=10, pady=10, relief="groove", wraplength=300)
-label.pack(pady=10, padx=20, fill="both", expand=True)  # Adjust wraplength as needed
 
-entry = tk.Entry(window, font=("Helvetica", 12))
-entry.pack(pady=10, padx=20, fill="x")
+    def show_hint(self):
+        if self.correct_answer:
+            hint = f"Hint: {self.correct_answer[0].upper()}"
+            messagebox.showinfo("Hint", hint)
+        else:
+            messagebox.showerror("Error", "No question has been loaded yet.")
 
-submit_button = tk.Button(window, text="Submit Answer", command=check_answer, font=("Helvetica", 14))
-submit_button.pack(pady=10, padx=20, fill="x")
+    def check_answer(self):
+        if self.current_question:
+            user_answer = self.entry.get().strip()
+            if user_answer.lower() == self.correct_answer.lower():
+                messagebox.showinfo("Correct!", "Your answer is correct!")
+                self.answered_questions[self.current_level].append(self.current_question)
+            else:
+                messagebox.showerror("Incorrect!", f"Sorry wrong answer, the correct answer is: {self.correct_answer}")
+            self.next_question()
+        else:
+            messagebox.showerror("Error", "No question has been loaded yet.")
 
-hint_button = tk.Button(window, text="Hint", command=show_hint, font=("Helvetica", 14))
-hint_button.pack(pady=10, padx=20, fill="x")
+    def next_question(self):
+        if self.questions:
+            self.current_question = self.questions.pop(0)
+            self.correct_answer = self.correct_answers.pop(0)
+            self.label.config(text=self.current_question)
+            self.entry.delete(0, tk.END)
+        else:
+            messagebox.showinfo("Level Completed", "Congratulations! You have completed this level.")
+            self.current_level += 1
+            if self.current_level > 5:
+                messagebox.showinfo("Game Over", "Congratulations! You have completed all levels.")
+                return
+            else:
+                self.start_game()
 
-# Run the tkinter event loop
-window.mainloop()
+    def start_game(self):
+        category_name = self.selected_categories.get()
+        category_id = next((category["id"] for category in self.categories if category["name"] == category_name), None)
+        if category_id:
+            self.fetch_questions(category_id)
+
+        else:
+            messagebox.showerror("Error", "Invalid category selected.")
+
+if __name__ == "__main__":
+    game = TriviaGame()
+    game.window.mainloop()
