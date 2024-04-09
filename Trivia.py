@@ -1,6 +1,7 @@
 import random
 import tkinter as tk
 from tkinter import messagebox
+from html import unescape
 import requests
 
 class TriviaGame:
@@ -13,7 +14,6 @@ class TriviaGame:
         self.correct_answer = ""
         self.current_level = 1
         self.questions = []
-        self.correct_answers = []
         self.answered_questions = {level: [] for level in range(1, 6)}
 
         self.create_widgets()
@@ -80,17 +80,12 @@ class TriviaGame:
 
     def fetch_questions(self, category_id):
         try:
-            API_URL = f"https://opentdb.com/api.php?amount=20"
+            API_URL = f"https://opentdb.com/api.php?amount=10&type=boolean"
             response = requests.get(API_URL)
+            response.raise_for_status()
             data = response.json()
-            if 'results' in data:
-                results = data["results"]
-                self.questions = [result["question"] for result in results]
-                self.correct_answers = [result["correct_answer"] for result in results]
-                if not self.questions:
-                    messagebox.showerror("Error", "No questions have been found for this category.")
-            else:
-                messagebox.showerror("Error", "No results has been found in the API response.")
+            self.questions = data['results']
+            self.next_question()
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Error", f"Failed to fetch questions: {e}")
 
@@ -116,8 +111,9 @@ class TriviaGame:
 
     def next_question(self):
         if self.questions:
-            self.current_question = self.questions.pop(0)
-            self.correct_answer = self.correct_answers.pop(0)
+            rand_question = random.choice(self.questions)
+            self.current_question = unescape(rand_question['question'])
+            self.correct_answer = rand_question['correct_answer']
             self.label.config(text=self.current_question)
             self.entry.delete(0, tk.END)
         else:
