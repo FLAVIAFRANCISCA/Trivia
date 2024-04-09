@@ -66,7 +66,7 @@ class TriviaGame:
         start_button = tk.Button(frame, text="Start Game", command=self.start_game, font=("Bold italic", 14), bg="#00FF00")
         start_button.grid(row=2, column=0, columnspan=2, pady=10)
 
-        self.label = tk.Label(self.window, text="", font=("Bold italic", 15), bg="#FFFFFF", padx=10, pady=10, relief="groove", wraplength=50)
+        self.label = tk.Label(self.window, text="", font=("Bold italic", 15), bg="#FFFFFF", padx=10, pady=10, relief="groove", wraplength=800)
         self.label.pack(pady=10, padx=20, fill="both", expand=True) 
 
         self.entry = tk.Entry(self.window, font=("Helvetica", 30))
