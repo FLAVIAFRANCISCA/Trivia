@@ -14,7 +14,10 @@ class TriviaGame:
         self.correct_answer = ""
         self.current_level = 1
         self.questions = []
+        self.question_number = 1
         self.answered_questions = {level: [] for level in range(1, 6)}
+        self.right_answers = 0
+        self.wrong_answers = 0
 
         self.create_widgets()
 
@@ -25,62 +28,24 @@ class TriviaGame:
         instruction_label = tk.Label(frame, text="Welcome to Trivia!", font=("Times New Roman", 35), bg="#00FF00")
         instruction_label.grid(row=0, column=0, columnspan=2, pady=20)
 
-        category_label = tk.Label(frame, text="Choose categories:", font=("Times", 18), bg="#00FF00")
-        category_label.grid(row=1, column=0, padx=20)
-
-        self.categories = [
-            {"id": 9, "name": "General Knowledge"},
-            {"id": 10, "name": "Books"},
-            {"id": 11, "name": "Film"},
-            {"id": 12, "name": "Music"},
-            {"id": 13, "name": "Musicals & Theatres"},
-            {"id": 14, "name": "Television"},
-            {"id": 15, "name": "Video Games"},
-            {"id": 16, "name": "Board Games"},
-            {"id": 17, "name": "Science & Nature"},
-            {"id": 18, "name": "Computers"},
-            {"id": 19, "name": "Mathematics"},
-            {"id": 20, "name": "Mythology"},
-            {"id": 21, "name": "Sports"},
-            {"id": 22, "name": "Geography"},
-            {"id": 23, "name": "History"},
-            {"id": 24, "name": "Politics"},
-            {"id": 25, "name": "Art"},
-            {"id": 26, "name": "Celebrities"},
-            {"id": 27, "name": "Animals"},
-            {"id": 28, "name": "Vehicles"},
-            {"id": 29, "name": "Comics"},
-            {"id": 30, "name": "Gadgets"},
-            {"id": 31, "name": "Japanese Anime & Manga"},
-            {"id": 32, "name": "Cartoon & Animations"}
-        ] 
-            
-
-        self.selected_categories = tk.StringVar()
-        self.selected_categories.set("")
-
-        category_dropdown = tk.OptionMenu(frame, self.selected_categories, *[category["name"] for category in self.categories])
-        category_dropdown.config(font=("Bold italic", 14), width=20, bg="#00FF00")
-        category_dropdown.grid(row=1, column=1, padx=20)
-
         start_button = tk.Button(frame, text="Start Game", command=self.start_game, font=("Bold italic", 14), bg="#00FF00")
-        start_button.grid(row=2, column=0, columnspan=2, pady=10)
+        start_button.grid(row=1, column=0, columnspan=2, pady=10)
 
         self.label = tk.Label(self.window, text="", font=("Bold italic", 15), bg="#FFFFFF", padx=10, pady=10, relief="groove", wraplength=800)
         self.label.pack(pady=10, padx=20, fill="both", expand=True) 
 
-        self.entry = tk.Entry(self.window, font=("Helvetica", 30))
-        self.entry.pack(pady=10, padx=20, fill="x")
+        true_button = tk.Button(self.window, text="True", command=lambda: self.check_answer(True), font=("Helvetica", 14), bg="#00FF00")
+        true_button.pack(pady=10, padx=20, fill="x")
 
-        submit_button = tk.Button(self.window, text="Submit Answer", command=self.check_answer, font=("Helvetica", 14), bg="#00FF00")
-        submit_button.pack(pady=10, padx=20, fill="x")
+        false_button = tk.Button(self.window, text="False", command=lambda: self.check_answer(False), font=("Helvetica", 14), bg="#00FF00")
+        false_button.pack(pady=10, padx=20, fill="x")
 
-        hint_button = tk.Button(self.window, text="Hint", command=self.show_hint, font=("Helvetica", 14), bg="#00FF00")
-        hint_button.pack(pady=10, padx=20, fill="x")
+        self.score_label = tk.Label(self.window, text="Score: Right Answers: 0, Wrong Answers: 0", font=("Helvetica", 14), bg="#FFFFFF")
+        self.score_label.pack(pady=10, padx=20, fill="x")
 
-    def fetch_questions(self, category_id):
+    def fetch_questions(self):
         try:
-            API_URL = f"https://opentdb.com/api.php?amount=10&type=boolean"
+            API_URL = f"https://opentdb.com/api.php?amount=50&type=boolean"
             response = requests.get(API_URL)
             response.raise_for_status()
             data = response.json()
@@ -89,33 +54,31 @@ class TriviaGame:
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Error", f"Failed to fetch questions: {e}")
 
-
-    def show_hint(self):
-        if self.correct_answer:
-            hint = f"Hint: {self.correct_answer[0].upper()}"
-            messagebox.showinfo("Hint", hint)
-        else:
-            messagebox.showerror("Error", "No question has been loaded yet.")
-
-    def check_answer(self):
+    def check_answer(self, user_answer):
         if self.current_question:
-            user_answer = self.entry.get().strip()
-            if user_answer.lower() == self.correct_answer.lower():
+            correct_answer = self.correct_answer.lower()
+            user_answer = "true" if user_answer else "false"
+            if user_answer == correct_answer:
                 messagebox.showinfo("Correct!", "Your answer is correct!")
-                self.answered_questions[self.current_level].append(self.current_question)
+                self.right_answers += 1
             else:
-                messagebox.showerror("Incorrect!", f"Sorry wrong answer, the correct answer is: {self.correct_answer}")
+                messagebox.showerror("Incorrect!", "Sorry wrong answer!")
+                self.wrong_answers += 1
+            self.update_score()
             self.next_question()
         else:
             messagebox.showerror("Error", "No question has been loaded yet.")
+
+    def update_score(self):
+        self.score_label.config(text=f"Score: Right Answers: {self.right_answers}, Wrong Answers: {self.wrong_answers}")
 
     def next_question(self):
         if self.questions:
             rand_question = random.choice(self.questions)
             self.current_question = unescape(rand_question['question'])
             self.correct_answer = rand_question['correct_answer']
-            self.label.config(text=self.current_question)
-            self.entry.delete(0, tk.END)
+            self.label.config(text=f"Question {self.question_number}: {self.current_question}")
+            self.question_number += 1
         else:
             messagebox.showinfo("Level Completed", "Congratulations! You have completed this level.")
             self.current_level += 1
@@ -126,13 +89,11 @@ class TriviaGame:
                 self.start_game()
 
     def start_game(self):
-        category_name = self.selected_categories.get()
-        category_id = next((category["id"] for category in self.categories if category["name"] == category_name), None)
-        if category_id:
-            self.fetch_questions(category_id)
-
-        else:
-            messagebox.showerror("Error", "Invalid category selected.")
+        self.question_number = 1
+        self.right_answers = 0
+        self.wrong_answers = 0
+        self.update_score()
+        self.fetch_questions()
 
 if __name__ == "__main__":
     game = TriviaGame()
